@@ -7,10 +7,19 @@ import java.awt.Paint;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Random;
 
 import javax.swing.JOptionPane;
 
-public class TwoPlayers extends Applet implements MouseListener{
+/**
+ * @author RAJAN
+ * 
+ * Random moves from Computer
+ * Player 1 : YOU
+ * Player 2 : Computer ( Which moves Randomly )
+ *
+ * */
+public class SinglePlayerRandom extends Applet implements MouseListener{
 	
 	/* Setting locations and sizes */
 	int x=100,   
@@ -28,6 +37,8 @@ public class TwoPlayers extends Applet implements MouseListener{
 	String winner=null;
 	
 	int filledPlayers=0;
+	int remainingMovesFromDraw=Stats.TOTAL_AVAILABLE_MOVES;
+	int Tplayer1=4, Tplayer2=4;
 	
 	/* stores stats */
 	int gameStats[][]={
@@ -41,7 +52,6 @@ public class TwoPlayers extends Applet implements MouseListener{
 	Point pre=null,next=null;
 	
 	public void init() {
-		this.setName("Four Cross");
 		this.setSize(500,500);
 		this.setBackground(Color.WHITE);
 		
@@ -52,30 +62,25 @@ public class TwoPlayers extends Applet implements MouseListener{
 			}
 		}
 		
-		showStatus("Player "+ currentPlayer +" : Put your Warrier ");
+		showStatus(" Put your Warrier ");
 		addMouseListener(this);
 	}
 	
 	public void paint(Graphics g) {
 		
-		/* Statistics... */
-		
-		if(gameover && !fillingProcess) {
-			//String msg="GAME OVER :: Winner " + winner;
-			//g.drawString(msg, 50, 50);
-		}
-		
 		/* Player List */
+		
 		g.setColor(Color.GREEN);
 		g.fillOval(x, 25, r ,r);
 		g.setFont(new Font("Arial", Font.ITALIC, 20));
-		g.drawString("Player 1 ", 3*x/2, 50);
+		g.drawString(" YOU ", 3*x/2, 50);
 		
 		g.setColor(Color.ORANGE);
 		g.fillOval(3*x, 25, r ,r);
-		g.drawString("Player 2 ", 7*x/2, 50);
+		g.drawString("Computer ", 7*x/2, 50);
 		
 		g.setColor(Color.BLACK);
+		
 		/* Drawing grid */
 		g.drawRect(x, y, 2*w , 2*h);
 		g.drawRect(x, y, w, h);
@@ -106,15 +111,38 @@ public class TwoPlayers extends Applet implements MouseListener{
 		}
 		
 		if(winner==null || (fillingProcess==false && winner.equals("GameIsNotOver"))) {
-			String msg="Player " + currentPlayer + " Your Turn ";
+			String msg=null;
+			if(currentPlayer==Stats.P1) {
+				msg=" Your Turn " ;
+			}else {
+				msg="Computer Thinking....";
+			}
 			g.setColor(Color.RED);
 			g.setFont(new Font("Calibri", Font.CENTER_BASELINE, 25));
-			g.drawString(msg, 3*x/2, this.getHeight()-50);
+			g.drawString(msg, 3*x/2 , this.getHeight()-50);
+			
+			msg="Remaining Moves From Draw : "+remainingMovesFromDraw;
+			g.setColor(Color.BLUE);
+			g.setFont(new Font("Calibri", Font.LAYOUT_LEFT_TO_RIGHT, 20));
+			g.drawString(msg, 3*x/2 - 20, this.getHeight()-20);
+			
 		}
 		else if(!fillingProcess){
-			String msg= winner + " WON ";
-			g.setColor(Color.ORANGE);
-			g.setFont(new Font("Calibri", Font.CENTER_BASELINE, 25));
+			String msg=null;
+			if(winner.equals("Player 1")) {
+				g.setColor(Color.GREEN);
+				msg="YOU WON ";
+			}
+			else if(winner.equals("Player 2")){
+				g.setColor(Color.ORANGE);
+				msg="YOU LOSE";
+			}
+			else {
+				g.setColor(Color.darkGray);
+				msg="DRAW";
+			}	
+			
+			g.setFont(new Font("Calibri", Font.HANGING_BASELINE, 25));
 			g.drawString(msg, 3*x/2, this.getHeight()-50);
 		}
 		
@@ -153,26 +181,142 @@ public class TwoPlayers extends Applet implements MouseListener{
 			else {
 				gameStats[p.x][p.y]=currentPlayer;
 			}
-			
-			//System.out.println("Succ : " + success);
-			
+						
+			/* your turn to put worrier */
 			if(success==1) {
-				repaint();
-				filledPlayers++;
-				changePlayer();
-				if(filledPlayers==8) {
-					fillingProcess=false;
-					this.showStatus("Game Started ....");
-					return;
-				}
-				showStatus("Player "+ currentPlayer +" : Put your Warrier ");
+				fillPlayer1();
 			} 
 			
+			/* Computer's Turn to put worrier */
+			if(currentPlayer==Stats.P2) {
+				fillPlayer2();
+			}
 			
 		}
 		/* Moves */
 		else {
-			if(pre==null) {
+			
+			/* YOUR MOVE */
+			if(currentPlayer==Stats.P1) {
+				movePlayer1(p);
+			}
+						
+			checkGameStats();
+			
+			/* Computer's Move */
+			if(currentPlayer==Stats.P2 && pre==null && next==null && !gameover) {
+				movePlayer2();
+			}
+			
+			checkGameStats();
+		}
+		
+	}
+
+	private void updateDrawConstraints() {
+
+		int Tp1=GridManager.totalRemainedPlayers(gameStats,Stats.P1);
+		int Tp2=GridManager.totalRemainedPlayers(gameStats,Stats.P2);
+		
+		if(Tplayer1 == Tp1 && Tplayer2==Tp2) {
+			remainingMovesFromDraw--;
+		}else {
+			remainingMovesFromDraw=Stats.TOTAL_AVAILABLE_MOVES;
+			Tplayer1=Tp1;
+			Tplayer2=Tp2;
+		}
+		
+	}
+
+	private void fillPlayer2() {
+		int success=0;
+		
+		while(success!=1) {
+			Random random=new Random();
+		
+			int n=random.nextInt(9);
+		
+			int x=n%3;
+			int y=n/3;
+			
+			if(gameStats[x][y]==Stats.BLANK) {
+				success=1;
+				gameStats[x][y]=Stats.P2;
+			}
+		}
+		
+		repaint();
+		filledPlayers++;
+		changePlayer();
+		if(filledPlayers==8) {
+			fillingProcess=false;
+			this.showStatus("Game Started ....");
+			return;
+		}
+		
+	}
+
+	private void fillPlayer1() {
+
+		repaint();
+		filledPlayers++;
+		changePlayer();
+		if(filledPlayers==8) {
+			fillingProcess=false;
+			this.showStatus("Game Started ....");
+			return;
+		}
+		
+		if(currentPlayer==Stats.P1) {
+			showStatus(" Put your Warrier ");
+		}
+		else {
+			showStatus("Computer Thinking....");
+		}
+	}
+
+	private void checkGameStats() {
+
+		winner=GridManager.gameOver(gameStats,remainingMovesFromDraw,currentPlayer);
+
+		if(!winner.equals("GameIsNotOver")) {
+			gameover=true;
+		}
+		
+		repaint();
+	}
+
+	private void movePlayer2() {
+		
+		boolean done=false;
+		Random random=new Random();
+		
+		while(!done) {
+			//System.out.println("Inside CPU Move");
+			
+			int n1=random.nextInt(9);
+			int n2=random.nextInt(9);
+			
+			//System.out.println("n1 >> n2 " + n1 + " # "+n2);
+			
+			Point p1=new Point(n1%3, n1/3);
+			Point p2=new Point(n2%3, n2/3);
+								
+			if(GridManager.isvalidMove(gameStats,currentPlayer,p1,p2)) {
+				done=true;
+				gameStats=GridManager.movePlayer(gameStats,currentPlayer,p1,p2);
+				updateMoveStatus(p1,p2);
+				repaint();
+				changePlayer();	
+				pre=next=null;
+			}
+		}
+		
+	}
+
+	private void movePlayer1(Point p) {
+		
+			if(pre==null) { 
 				if(gameStats[p.x][p.y]==currentPlayer) {
 					pre=p;
 					//System.out.println("Previous : " + pre.x +" : "+ pre.y);
@@ -185,9 +329,12 @@ public class TwoPlayers extends Applet implements MouseListener{
 					//System.out.println("Next : " + next.x +" : "+ next.y);
 					if(GridManager.isvalidMove(gameStats,currentPlayer,pre,next)) {
 						gameStats=GridManager.movePlayer(gameStats,currentPlayer,pre,next);
-						pre=next=null;
+						updateMoveStatus(pre,next);
 						repaint();
 						changePlayer();
+						updateDrawConstraints();
+						pre=next=null;
+						//System.out.println("Player Changed");
 					}
 				}
 				
@@ -196,8 +343,16 @@ public class TwoPlayers extends Applet implements MouseListener{
 					next=null;
 				}
 			}
-		}
 		
+	}
+
+	private void updateMoveStatus(Point p, Point n) {
+		// TODO Auto-generated method stub
+		if(p==null || n==null)
+			return;
+		
+		String msg="Last move : From " + (3*p.x + p.y + 1)+  " to " + (3*n.x + n.y + 1);
+		this.showStatus(msg);
 	}
 
 	@Override
@@ -209,7 +364,7 @@ public class TwoPlayers extends Applet implements MouseListener{
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
 		if(!fillingProcess) {
-			winner=GridManager.gameOver(gameStats,1,currentPlayer);
+			winner=GridManager.gameOver(gameStats,remainingMovesFromDraw,currentPlayer);
 			//System.out.println("Verdict : " + winner);
 		}
 		if(!fillingProcess && !winner.equals("GameIsNotOver")) {

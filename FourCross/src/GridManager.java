@@ -1,5 +1,6 @@
-/*
- * Utility class to manage moves ang game stats
+/**
+ * @author RAJAN
+ * Utility class to manage moves an game stats
  * 
  * */
 
@@ -105,15 +106,18 @@ public class GridManager {
 	/*
 	 * Game ends in 2 conditions
 	 * 1.) All worriers of any 1 player is dead
-	 * 2.) Any of the Player do not have valid move
+	 * 2.) current Player do not have valid move
 	 * 
 	 * */
-	public static String gameOver(int[][] gameStats) {
-		// TODO Auto-generated method stub
+	public static String gameOver(int[][] gameStats ,int remainingMovesFromDraw , int currentPlayer) {
 		
 		/*
 		 * Checking for remaining worriers
 		 * */
+		
+		if(remainingMovesFromDraw==0) {
+			return "DRAW";
+		}
 		
 		boolean player1=false,
 				player2=false;
@@ -134,41 +138,107 @@ public class GridManager {
 		if(!player2)
 			return "Player 1";
 		
+		boolean validMoveRemained=checkForValidMoves(gameStats , currentPlayer);
 		
-		/*
-		 * Check if both the players have valid moves or not ?
-		 * */
-		int x[]={1 , -1 ,  0 , 0};
-		int y[]={0 ,  0 , -1 , 1};
+		if(!validMoveRemained) {
+			String winner;
+			if(currentPlayer==Stats.P1) {
+				winner="Player 2";
+			}
+			else {
+				winner="Player 1";
+			}
+			return winner;
+		}
 		
-		player1=false;
-		player2=false;
+		//System.out.println(currentPlayer + " have valid moves");
+		
+		return "GameIsNotOver";
+	}
+	
+	
+	private static boolean checkForValidMoves(int[][] gameStats, int currentPlayer) {
+		
+		boolean move=false;
 		
 		for(int i=0;i<3;i++) {
 			for(int j=0;j<3;j++) {
-				for(int k=0;k<4;k++) {
-					int xx= i + x[k];
-					int yy= j + y[k];
+				if(gameStats[i][j]==currentPlayer) {
+					move=checkAtDist1(gameStats, currentPlayer ,i, j);
 					
-					if(xx<3 && xx>=0 && yy>=0 && yy<3) {
-						if(gameStats[i][j]==Stats.P1 && gameStats[xx][yy]==Stats.BLANK) {
-							player1=true;
-						}
-						if(gameStats[i][j]==Stats.P2 && gameStats[xx][yy]==Stats.BLANK) {
-							player2=true;
-						}
+					if(move) {
+						return true;
 					}
+					move=checkAtDist2(gameStats, currentPlayer , i, j );
+					
+					if(move) {
+						return true;
+					}
+			
 				}
 			}
 		}
 		
-		if(!player1)
-			return "Player 2";
-		
-		if(!player2)
-			return "Player 1";
-		
-		return "GameIsNotOver";
+		return false;
 	}
 
+	public static boolean checkAtDist2(int[][] gameStats, int currentPlayer , int i, int j) {
+		
+		int x[]={2,-2,0,0};
+		int y[]={0,0,-2,2};
+		
+		int opponent=currentPlayer==Stats.P1 ? Stats.P2 : Stats.P1;
+		
+		for(int k=0;k<4;k++) {
+			int xx= i + x[k];
+			int yy= j + y[k];
+			
+			if(xx >=0 && xx <3 && yy >=0 && yy<3 ) {
+				int p=(i + xx)/2;
+				int q=(j + yy)/2;
+				
+				if(p>=0 && p<3 && q>=0 && q<3 && gameStats[xx][yy]==Stats.BLANK && 
+						gameStats[p][q]==opponent) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	public static boolean checkAtDist1(int[][] gameStats, int currentPlayer ,int i, int j) {
+		
+		int x[]={1,-1,0,0};
+		int y[]={0,0,-1,1};
+		
+		for(int k=0;k<4;k++) {
+			int xx= i + x[k];
+			int yy= j + y[k];
+			
+			if(xx >=0 && xx <3 && yy >=0 && yy<3 ) {
+				if(gameStats[xx][yy]==Stats.BLANK) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	public static int totalRemainedPlayers(int[][] gameStats, int playerID) {
+		
+		int total=0;
+			
+		for(int i=0;i<3;i++) {
+			for(int j=0;j<3;j++) {
+				if(gameStats[i][j]==playerID) {
+					total++;
+				}
+			}
+		}
+		
+		return total;
+	}
+	
 }
