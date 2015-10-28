@@ -1,16 +1,3 @@
-import java.applet.Applet;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Label;
-import java.awt.Paint;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.Random;
-
-import javax.swing.JOptionPane;
-
 /**
  * @author RAJAN
  * 
@@ -19,8 +6,20 @@ import javax.swing.JOptionPane;
  * Player 2 : Computer ( Which moves Randomly )
  *
  * */
+
+import java.applet.Applet;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Random;
+
 public class SinglePlayerRandom extends Applet implements MouseListener{
 	
+	private static final long serialVersionUID = 1L;
+
 	/* Setting locations and sizes */
 	int x=100,   
 		y=100,
@@ -121,11 +120,12 @@ public class SinglePlayerRandom extends Applet implements MouseListener{
 			g.setFont(new Font("Calibri", Font.CENTER_BASELINE, 25));
 			g.drawString(msg, 3*x/2 , this.getHeight()-50);
 			
-			msg="Remaining Moves From Draw : "+remainingMovesFromDraw;
-			g.setColor(Color.BLUE);
-			g.setFont(new Font("Calibri", Font.LAYOUT_LEFT_TO_RIGHT, 20));
-			g.drawString(msg, 3*x/2 - 20, this.getHeight()-20);
-			
+			if(!fillingProcess) {
+				msg="Remaining Moves From Draw : "+remainingMovesFromDraw;
+				g.setColor(Color.BLUE);
+				g.setFont(new Font("Calibri", Font.LAYOUT_LEFT_TO_RIGHT, 20));
+				g.drawString(msg, 3*x/2 - 20, this.getHeight()-20);
+			}
 		}
 		else if(!fillingProcess){
 			String msg=null;
@@ -199,16 +199,14 @@ public class SinglePlayerRandom extends Applet implements MouseListener{
 			/* YOUR MOVE */
 			if(currentPlayer==Stats.P1) {
 				movePlayer1(p);
+				checkGameStats();
 			}
-						
-			checkGameStats();
 			
 			/* Computer's Move */
 			if(currentPlayer==Stats.P2 && pre==null && next==null && !gameover) {
 				movePlayer2();
-			}
-			
-			checkGameStats();
+				checkGameStats();
+			}		
 		}
 		
 	}
