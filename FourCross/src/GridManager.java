@@ -31,6 +31,12 @@ public class GridManager {
 	 * */
 	public static boolean isvalidMove(int[][] gameStats, int currentPlayer, Point pre, Point next) {
 		
+		if(pre==null || next==null)
+			return false;
+		
+		if(pre.x<0 || pre.x>2 || pre.y<0 || pre.y>2 || next.x<0 || next.x>2 || next.y<0 || next.y>2)
+			return false;
+		
 		/* previous selected warrier was not current Player */
 		if(gameStats[pre.x][pre.y]!=currentPlayer)
 			return false;

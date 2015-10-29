@@ -283,13 +283,6 @@ public class SinglePlayer extends Applet implements MouseListener{
 		
 		repaint();
 	}
-	
-	/*
-	 * Computer's move 
-	 * */
-	private void movePlayer2() {
-		
-	}
 
 	private void movePlayer1(Point p) {
 		
@@ -322,7 +315,172 @@ public class SinglePlayer extends Applet implements MouseListener{
 			}
 		
 	}
+	
+	/*
+	 * Computer's move 
+	 * */
+	private void movePlayer2() {
+		repaint();
+		int result=moveAI(currentPlayer , remainingMovesFromDraw);
+		
+		System.out.println("Result >> " + result);
+		pre=next=null;
+		changePlayer();
+	}
+	
+	private int moveAI(int currentPlayer2, int remainingMovesFromDraw2) {
+		
+		/* base Case :: Terminating Conditions */
+		String gameresult=GridManager.gameOver(gameStats, remainingMovesFromDraw2, currentPlayer2);
+		
+		//System.out.println("Inside Move AI");
+		
+		int opponent=currentPlayer2==Stats.P1?Stats.P2:Stats.P1;
+		int remainedCurrentPlayers=GridManager.totalRemainedPlayers(gameStats, currentPlayer2);
+		int remainedOpponents=GridManager.totalRemainedPlayers(gameStats, opponent);
+		
+		/* So current player would try to maximize its players while kill max opponenet's players */
+		int delta=200*(remainedCurrentPlayers - remainedOpponents) - 100*remainingMovesFromDraw2;
+		
+		String currentPlayerName=currentPlayer2==Stats.P1 ? "Player 1" : "Player 2";
+		String opponentPlayerName=currentPlayer2==Stats.P2 ? "Player 1" : "Player 2";
+		
+		if(gameresult.equals(currentPlayerName)) {
+			return 5000 ;
+		}
+		else if(gameresult.equals(opponentPlayerName)) {
+			return -5000;
+		}
+		else if(gameresult.equals("DRAW")){
+			return 0;
+		}
+		
+		Point m1=new Point();
+		Point m2=new Point();
+		Point bestm1=new Point();
+		Point bestm2=new Point();
+		
+		/* If Player1 is on move */
+		if(currentPlayer2==Stats.P1) {
+			//System.out.println("Your Turn");
+			int maximumScore=-10000,score=0;
+			
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++) {
+					if(gameStats[i][j]==currentPlayer2) {
+						
+						//System.out.println("CP : " + currentPlayer2 + " >> i j >> " + i +" : " + j );
+						
+						/* Check all possible 8 Movess */
+						for(int k=0;k<8;k++) {
+							int x[]={0 , 0 , 1 ,-1 , 0 , 0 , 2 ,-2 };
+							int y[]={-1, 1 , 0 , 0 , -2, 2 , 0 , 0 }; 
+							
+							m1.x=i;
+							m1.y=j;
+							m2.x=i + x[k];
+							m2.y=j + y[k];
+							
+							if(GridManager.isvalidMove(gameStats, currentPlayer2, m1, m2)) {
+								/* Store current  gameStats*/
+								int gameStatsTemp[][]={
+										{gameStats[0][0] , gameStats[0][1] , gameStats[0][2] },
+										{gameStats[1][0] , gameStats[1][1] , gameStats[1][2] },
+										{gameStats[2][0] , gameStats[2][1] , gameStats[2][2] },
+								};
+								
+								gameStats=GridManager.movePlayer(gameStats, currentPlayer2, m1, m2);
+								
+								score=moveAI(opponent, remainingMovesFromDraw2 - 1);
+								
+								if(score > maximumScore) {
+									bestm1.x=m1.x;
+									bestm1.y=m1.y;
+									bestm2.x=m2.x;
+									bestm2.y=m2.y;
+									maximumScore=score;
+								}
+								
+								/* Reassign Original gameStats */
+								for(int p=0;p<3;p++) {
+									for(int q=0;q<3;q++) {
+										gameStats[p][q]=gameStatsTemp[p][q];
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			/* Finally move the best possible move */
 
+			gameStats=GridManager.movePlayer(gameStats, currentPlayer2, bestm1, bestm2);
+
+			return maximumScore;
+		}
+		/* If Computer is on move */
+		else {
+			//System.out.println("Computer's Turn");
+			
+			int minimumScore=100000,score=0;
+			
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++) {
+					if(gameStats[i][j]==currentPlayer2) {
+						/* Check all possible 8 Movess */
+						for(int k=0;k<8;k++) {
+							int x[]={0 , 0 , 1 ,-1 , 0 , 0 , 2 ,-2 };
+							int y[]={-1, 1 , 0 , 0 , -2, 2 , 0 , 0 }; 
+							
+							m1.x=i;
+							m1.y=j;
+							m2.x=i+ x[k];
+							m2.y=j+ y[k];
+							
+							//System.out.println(m1.x  + " - " + m1.y+ " - " + m2.x+ " - " + m2.y);
+							
+							if(GridManager.isvalidMove(gameStats, currentPlayer2, m1, m2)) {
+								//System.out.println("Have validmoves");
+								
+								/* Store current  gameStats*/
+								int gameStatsTemp[][]={
+										{gameStats[0][0] , gameStats[0][1] , gameStats[0][2] },
+										{gameStats[1][0] , gameStats[1][1] , gameStats[1][2] },
+										{gameStats[2][0] , gameStats[2][1] , gameStats[2][2] },
+								};
+								
+								gameStats=GridManager.movePlayer(gameStats, currentPlayer2, m1, m2);
+								
+								score=moveAI(opponent, remainingMovesFromDraw2 - 1);
+								
+								if(score < minimumScore) {
+									bestm1.x=m1.x;
+									bestm1.y=m1.y;
+									bestm2.x=m2.x;
+									bestm2.y=m2.y;
+									minimumScore=score;
+								}
+								
+								/* Reassign Original gameStats */
+								for(int p=0;p<3;p++) {
+									for(int q=0;q<3;q++) {
+										gameStats[p][q]=gameStatsTemp[p][q];
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			/* Finally move the best possible move for Player 1 */
+			gameStats=GridManager.movePlayer(gameStats, currentPlayer2, bestm1, bestm2);
+			//System.out.println("Moved : " + bestm1.x + " " + bestm1.y +" "+ bestm2.x +" "+ bestm2.y);
+			return minimumScore;
+		}
+	}
+	
 	private void updateMoveStatus(Point p, Point n) {
 		// TODO Auto-generated method stub
 		if(p==null || n==null)
