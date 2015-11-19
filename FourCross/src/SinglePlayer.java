@@ -321,14 +321,14 @@ public class SinglePlayer extends Applet implements MouseListener{
 	 * */
 	private void movePlayer2() {
 		repaint();
-		int result=moveAI(currentPlayer , remainingMovesFromDraw);
+		int result=moveAI(currentPlayer , remainingMovesFromDraw , 0);
 		
-		System.out.println("Result >> " + result);
+		//System.out.println("Result >> " + result);
 		pre=next=null;
 		changePlayer();
 	}
 	
-	private int moveAI(int currentPlayer2, int remainingMovesFromDraw2) {
+	private int moveAI(int currentPlayer2, int remainingMovesFromDraw2 , int depth) {
 		
 		/* base Case :: Terminating Conditions */
 		String gameresult=GridManager.gameOver(gameStats, remainingMovesFromDraw2, currentPlayer2);
@@ -340,19 +340,18 @@ public class SinglePlayer extends Applet implements MouseListener{
 		int remainedOpponents=GridManager.totalRemainedPlayers(gameStats, opponent);
 		
 		/* So current player would try to maximize its players while kill max opponenet's players */
-		int delta=200*(remainedCurrentPlayers - remainedOpponents) - 100*remainingMovesFromDraw2;
 		
 		String currentPlayerName=currentPlayer2==Stats.P1 ? "Player 1" : "Player 2";
 		String opponentPlayerName=currentPlayer2==Stats.P2 ? "Player 1" : "Player 2";
 		
 		if(gameresult.equals(currentPlayerName)) {
-			return 5000 ;
+			return 100000*(remainingMovesFromDraw2 +1);
 		}
 		else if(gameresult.equals(opponentPlayerName)) {
-			return -5000;
+			return -100000 + 1500/(remainingMovesFromDraw2+1);
 		}
 		else if(gameresult.equals("DRAW")){
-			return 0;
+			return 1000*(remainedCurrentPlayers) + 750*(remainedOpponents);
 		}
 		
 		Point m1=new Point();
@@ -363,7 +362,7 @@ public class SinglePlayer extends Applet implements MouseListener{
 		/* If Player1 is on move */
 		if(currentPlayer2==Stats.P1) {
 			//System.out.println("Your Turn");
-			int maximumScore=-10000,score=0;
+			int maximumScore=-1000000,score=0;
 			
 			for(int i=0;i<3;i++) {
 				for(int j=0;j<3;j++) {
@@ -391,7 +390,9 @@ public class SinglePlayer extends Applet implements MouseListener{
 								
 								gameStats=GridManager.movePlayer(gameStats, currentPlayer2, m1, m2);
 								
-								score=moveAI(opponent, remainingMovesFromDraw2 - 1);
+								score=moveAI(opponent, remainingMovesFromDraw2 - 1 , depth + 1);
+								
+			//System.out.println("currentPlayer : " + currentPlayer2 + m1.x +"-"+ m1.y +"-"+ m2.x +"-"+ m2.y+"s >> Score " + score);
 								
 								if(score > maximumScore) {
 									bestm1.x=m1.x;
@@ -423,7 +424,7 @@ public class SinglePlayer extends Applet implements MouseListener{
 		else {
 			//System.out.println("Computer's Turn");
 			
-			int minimumScore=100000,score=0;
+			int minimumScore=1000000,score=0;
 			
 			for(int i=0;i<3;i++) {
 				for(int j=0;j<3;j++) {
@@ -440,7 +441,7 @@ public class SinglePlayer extends Applet implements MouseListener{
 							
 							//System.out.println(m1.x  + " - " + m1.y+ " - " + m2.x+ " - " + m2.y);
 							
-							if(GridManager.isvalidMove(gameStats, currentPlayer2, m1, m2)) {
+							if(GridManager.isvalidMove(gameStats, currentPlayer2, m1, m2 )) {
 								//System.out.println("Have validmoves");
 								
 								/* Store current  gameStats*/
@@ -452,8 +453,9 @@ public class SinglePlayer extends Applet implements MouseListener{
 								
 								gameStats=GridManager.movePlayer(gameStats, currentPlayer2, m1, m2);
 								
-								score=moveAI(opponent, remainingMovesFromDraw2 - 1);
-								
+								score=moveAI(opponent, remainingMovesFromDraw2 - 1 , depth + 1);
+		//System.out.println("currentPlayer : " + currentPlayer2 +"=>"+ m1.x +"-"+ m1.y +"-"+ m2.x +"-"+ m2.y+"s >> Score " + score);
+
 								if(score < minimumScore) {
 									bestm1.x=m1.x;
 									bestm1.y=m1.y;

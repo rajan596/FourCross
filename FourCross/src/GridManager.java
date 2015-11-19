@@ -128,6 +128,7 @@ public class GridManager {
 		boolean player1=false,
 				player2=false;
 		
+		/* Check if pieces are left */
 		for(int i=0;i<3;i++) {
 			for(int j=0;j<3;j++) {
 				if(gameStats[i][j]==Stats.P1)
