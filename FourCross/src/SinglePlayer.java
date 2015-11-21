@@ -1,9 +1,8 @@
 /**
  * @author RAJAN
  * 
- * Random moves from Computer
  * Player 1 : YOU
- * Player 2 : Computer ( Which moves Randomly )
+ * Player 2 : Computer (With Intellegence)
  *
  * */
 
